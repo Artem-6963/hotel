@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Номер - LuxStay</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+             <span class="logo-text">ROYALHOTEL</span>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Каталог</a>
+                <a href="profile.html" id="profileLink">Профиль</a>
+                <a href="login.html" id="authLink">Вход</a>
+                <a href="admin.html" id="adminLink" style="display:none;">Админ</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" id="roomContent">
+        <div style="text-align: center; padding: 50px;">Загрузка...</div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 Отель LuxStay. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/booking.js"></script>
+    <script>
+        let currentRoom = null;
+        let currentMainPhoto = 0;
+        
+        function calculateTotal() {
+            const checkIn = document.getElementById('roomCheckIn')?.value;
+            const checkOut = document.getElementById('roomCheckOut')?.value;
+            const guests = document.getElementById('roomGuests')?.value;
+            
+            if (checkIn && checkOut && currentRoom) {
+                const checkInDate = new Date(checkIn);
+                const checkOutDate = new Date(checkOut);
+                const days = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+                
+                if (days > 0) {
+                    const total = days * currentRoom.price_per_night;
+                    document.getElementById('totalPrice').textContent = total.toLocaleString() + ' ₽';
+                    document.getElementById('nightsCount').textContent = days;
+                    document.getElementById('priceDetail').innerHTML = `${currentRoom.price_per_night.toLocaleString()} ₽ × ${days} ночей = ${total.toLocaleString()} ₽`;
+                } else {
+                    document.getElementById('totalPrice').textContent = '0 ₽';
+                    document.getElementById('nightsCount').textContent = '0';
+                }
+            }
+        }
+        
+        function changePhoto(index) {
+            if (currentRoom && currentRoom.images[index]) {
+                currentMainPhoto = index;
+                const mainPhoto = document.getElementById('mainPhoto');
+                if (mainPhoto) {
+                    mainPhoto.src = currentRoom.images[index];
+                }
+                // Обновляем активный класс у миниатюр
+                document.querySelectorAll('.thumb').forEach((thumb, i) => {
+                    if (i === index) {
+                        thumb.classList.add('active');
+                    } else {
+                        thumb.classList.remove('active');
+                    }
+                });
+            }
+        }
+        
+        function bookRoom() {
+            if (!currentUser) {
+                alert('🔐 Пожалуйста, авторизуйтесь, чтобы забронировать номер');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const checkIn = document.getElementById('roomCheckIn').value;
+            const checkOut = document.getElementById('roomCheckOut').value;
+            const guests = parseInt(document.getElementById('roomGuests').value);
+            
+            if (!checkIn || !checkOut) {
+                alert('📅 Выберите даты заезда и выезда');
+                return;
+            }
+            
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (checkInDate < today) {
+                alert('Дата заезда не может быть раньше сегодняшнего дня');
+                return;
+            }
+            
+            if (checkOutDate <= checkInDate) {
+                alert('Дата выезда должна быть позже даты заезда');
+                return;
+            }
+            
+            if (guests < 1 || guests > currentRoom.capacity) {
+                alert(`Количество гостей должно быть от 1 до ${currentRoom.capacity}`);
+                return;
+            }
+            
+            const result = createBooking(currentRoom.id, checkIn, checkOut, guests, currentUser.id, currentUser.name);
+            
+            if (result.success) {
+                alert(`✅ Номер успешно забронирован!\n\n${currentRoom.name}\n📅 ${checkIn} — ${checkOut}\n👥 ${guests} гостей\n💰 ${result.booking.totalPrice.toLocaleString()} ₽`);
+                window.location.href = 'profile.html';
+            } else {
+                alert('❌ Ошибка: ' + result.error);
+            }
+        }
+        
+        function loadRoom() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = parseInt(urlParams.get('id'));
+            const rooms = getRooms();
+            currentRoom = rooms.find(r => r.id === roomId);
+            
+            if (!currentRoom) {
+                document.getElementById('roomContent').innerHTML = `
+                    <div style="text-align: center; padding: 80px;">
+                        <h2>😕 Номер не найден</h2>
+                        <p>Вернитесь в <a href="catalog.html">каталог</a> и выберите другой номер</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Устанавливаем минимальные даты
+            const today = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('roomContent').innerHTML = `
+                <div class="room-detail">
+                    <div class="room-gallery">
+                        <img src="${currentRoom.images[0]}" class="main-photo" id="mainPhoto" onerror="this.src='https://via.placeholder.com/600x350?text=Фото+номера'">
+                        <div class="thumbnails">
+                            ${currentRoom.images.map((img, i) => `
+                                <img src="${img}" class="thumb ${i === 0 ? 'active' : ''}" onclick="changePhoto(${i})" onerror="this.src='https://via.placeholder.com/80x80?text=Фото'">
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="booking-card">
+                        <h2>${currentRoom.name}</h2>
+                        <div class="room-badge">⭐ ${currentRoom.price_per_night.toLocaleString()} ₽ / ночь</div>
+                        <p style="margin: 15px 0; line-height: 1.6;">${currentRoom.description}</p>
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 15px 0;">
+                            <p><strong>👥 Вместимость:</strong> до ${currentRoom.capacity} гостей</p>
+                            <div class="amenities" style="margin-top: 10px;">
+                                <strong>Удобства:</strong><br>
+                                ${currentRoom.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}
+                            </div>
+                        </div>
+                        
+                        <h3 style="margin: 25px 0 15px;">📅 Забронировать номер</h3>
+                        
+                        <div class="form-group">
+                            <label>Дата заезда</label>
+                            <input type="date" id="roomCheckIn" min="${today}" onchange="calculateTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Дата выезда</label>
+                            <input type="date" id="roomCheckOut" min="${today}" onchange="calculateTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Количество гостей (макс. ${currentRoom.capacity})</label>
+                            <input type="number" id="roomGuests" min="1" max="${currentRoom.capacity}" value="2" onchange="calculateTotal()">
+                        </div>
+                        
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 12px; margin: 15px 0;">
+                            <div><strong>💰 Детали оплаты:</strong></div>
+                            <div id="priceDetail" style="font-size: 14px; margin-top: 5px;">Выберите даты для расчета</div>
+                            <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">
+                                Итого за <span id="nightsCount">0</span> ночей: <span id="totalPrice">0 ₽</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" style="width:100%; padding: 14px; font-size: 1.1rem;" onclick="bookRoom()">
+                            ✅ Забронировать сейчас
+                        </button>
+                        
+                        ${!currentUser ? '<p style="margin-top:15px; font-size:12px; color:#666; text-align:center;">🔐 Для бронирования необходимо <a href="login.html">войти</a> или <a href="register.html">зарегистрироваться</a></p>' : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Устанавливаем слушатели для расчета
+            setTimeout(() => {
+                const checkIn = document.getElementById('roomCheckIn');
+                const checkOut = document.getElementById('roomCheckOut');
+                if (checkIn && checkOut) {
+                    checkIn.addEventListener('change', calculateTotal);
+                    checkOut.addEventListener('change', calculateTotal);
+                }
+            }, 100);
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            loadRoom();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Номера | ROYALHOTEL</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Сетка каталога */
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px; 
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+
+        .room-card {
+            background: #12121a;
+            border: 1px solid rgba(201, 165, 91, 0.15);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .room-card:hover {
+            border-color: #c9a55b;
+            transform: translateY(-5px);
+        }
+
+        .room-img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .room-info {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .room-title {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .room-desc {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1; 
+        }
+
+        .room-price {
+            font-size: 1.2rem;
+            color: #c9a55b;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .btn-catalog {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            text-align: center;
+            background: transparent;
+            color: #c9a55b;
+            border: 1px solid #c9a55b;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-catalog:hover {
+            background: #c9a55b;
+            color: #000;
+        }
+
+        .filter-section {
+            margin: 40px 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        select {
+            background: #12121a;
+            color: #fff;
+            border: 1px solid #c9a55b;
+            padding: 8px 12px;
+            border-radius: 4px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+            <div class="logo"><div class="logo-icon">R</div><span class="logo-text">ROYALHOTEL</span></div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="catalog.html" class="active">Номера</a>
+                <a href="profile.html">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="filter-section">
+            <span style="color: #c9a55b; font-size: 0.9rem; font-weight: bold;">СОРТИРОВКА:</span>
+            <select id="priceFilter" onchange="renderCatalog()">
+                <option value="all">Все номера</option>
+                <option value="low">Сначала дешевые</option>
+                <option value="high">Сначала дорогие</option>
+            </select>
+        </div>
+
+        <div id="catalogRooms" class="room-grid"></div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        function renderCatalog() {
+            const container = document.getElementById('catalogRooms');
+            const filter = document.getElementById('priceFilter').value;
+            let rooms = getRooms();
+
+            if (filter === 'low') rooms.sort((a, b) => a.price_per_night - b.price_per_night);
+            if (filter === 'high') rooms.sort((a, b) => b.price_per_night - a.price_per_night);
+
+            container.innerHTML = rooms.map(room => `
+                <div class="room-card">
+                    <img src="${room.images[0]}" class="room-img">
+                    <div class="room-info">
+                        <h3 class="room-title">${room.name}</h3>
+                        <p class="room-desc">${room.description}</p>
+                        <div class="room-price">${room.price_per_night.toLocaleString()} ₸ / Ночь</div>
+                        <a href="room.html?id=${room.id}" class="btn-catalog">Подробнее</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderCatalog);
+    </script>
+</body>
+</html>

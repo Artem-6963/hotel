@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация | ROYALHOTEL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+            <div class="logo">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">ROYALHOTEL</span>
+            </div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Номера</a>
+                <a href="login.html">Вход</a>
+                <a href="register.html" class="active">Регистрация</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="auth-container">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2>Создать аккаунт</h2>
+                <p style="color: #666;">Зарегистрируйтесь, чтобы бронировать номера</p>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Ваше полное имя</label>
+                    <input type="text" id="regName" required placeholder="Иван Иванов">
+                </div>
+                
+                <div class="form-group">
+                    <label>Электронная почта</label>
+                    <input type="email" id="regEmail" required placeholder="ivan@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Пароль (мин. 4 символа)</label>
+                    <input type="password" id="regPassword" required minlength="4" placeholder="••••••">
+                </div>
+                
+                <div class="form-group">
+                    <label>Подтвердите пароль</label>
+                    <input type="password" id="regConfirmPassword" required placeholder="••••••">
+                </div>
+                
+                <button type="submit" class="btn" style="width:100%; padding: 14px;">Зарегистрироваться</button>
+                
+                <div id="regError" class="error-msg"></div>
+            </form>
+            
+            <p style="margin-top: 30px; text-align: center;">
+                Уже есть аккаунт? <a href="login.html">Войдите</a>
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 ROYALSTAY | Премиум отель</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            
+            if (!name || !email || !password) {
+                document.getElementById('regError').textContent = 'Пожалуйста, заполните все поля';
+                return;
+            }
+            
+            if (password.length < 4) {
+                document.getElementById('regError').textContent = 'Пароль должен содержать минимум 4 символа';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                document.getElementById('regError').textContent = 'Пароли не совпадают';
+                return;
+            }
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                document.getElementById('regError').textContent = 'Введите корректный email';
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            
+            if (users.find(u => u.email === email)) {
+                document.getElementById('regError').textContent = 'Этот email уже зарегистрирован';
+                return;
+            }
+            
+            const newUser = {
+                id: Date.now(),
+                email,
+                password,
+                name,
+                role: 'client'
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            alert(`Добро пожаловать, ${name}!`);
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

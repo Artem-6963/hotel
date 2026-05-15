@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель |ROYALHOTEL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+            <div class="logo">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">ROYALHOTEL</span>
+            </div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Номера</a>
+                <a href="profile.html">Профиль</a>
+                <a href="login.html" id="authLink">Выйти</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div style="background: linear-gradient(135deg, #12121a, #0d0d12); padding: 30px; border-radius: 20px; margin: 30px 0;">
+            <h2>Управление бронированиями</h2>
+            <p>Все брони отеля</p>
+        </div>
+        
+        <div id="allBookingsList"></div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 ROYALHOTEL | Панель администратора</p>
+        </div>
+    </footer>
+    <div id="adminBookings" class="container"></div>
+
+<script>
+    function renderAdminPanel() {
+        const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        const container = document.getElementById('adminBookings');
+        
+        if (bookings.length === 0) {
+            container.innerHTML = "<h3>Бронирований пока нет</h3>";
+            return;
+        }
+
+        container.innerHTML = bookings.map(b => `
+            <div class="block-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div>
+                    <strong>ID: ${b.id}</strong> | Номер: ${b.roomName}<br>
+                    Клиент ID: ${b.userId} | Даты: ${b.checkIn} — ${b.checkOut}
+                </div>
+                <button onclick="deleteBooking(${b.id})" style="background:#ff4444; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px;">
+                    Отменить бронь
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function deleteBooking(id) {
+        if (confirm('Вы уверены, что хотите отменить чужую бронь?')) {
+            let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            bookings = bookings.filter(b => b.id !== id);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+            renderAdminPanel();
+        }
+    }
+    
+  
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || user.role !== 'admin') {
+        alert('Доступ запрещен');
+        window.location.href = 'index.html';
+    } else {
+        renderAdminPanel();
+    }
+</script>
+
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/booking.js"></script>
+    <script>
+        function renderAdminBookings() {
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert('Доступ запрещен. Только для администраторов.');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const bookings = getBookings();
+            const container = document.getElementById('allBookingsList');
+            
+            if (bookings.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; background:#12121a; border-radius:20px;">Пока нет ни одного бронирования</div>';
+                return;
+            }
+            
+            container.innerHTML = bookings.map(booking => `
+                <div class="admin-booking-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                        <div style="flex: 1;">
+                            <h3>${booking.roomName} <span class="admin-badge">Бронь #${booking.id}</span></h3>
+                            <p>Гость: ${booking.userName}</p>
+                            <p>Даты: ${booking.checkIn} — ${booking.checkOut}</p>
+                            <p>Гостей: ${booking.guests}</p>
+                            <p>Сумма: ${booking.totalPrice.toLocaleString()} ₽</p>
+                            <p style="font-size: 12px; color: #666;">Забронировано: ${new Date(booking.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div style="margin-left: 20px;">
+                            <button onclick="cancelAdminBooking(${booking.id})" class="btn-cancel">
+                                Отменить бронь
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        window.cancelAdminBooking = function(bookingId) {
+            if (confirm('Отменить это бронирование?')) {
+                if (cancelBooking(bookingId, currentUser.id, 'admin')) {
+                    alert('Бронирование отменено');
+                    renderAdminBookings();
+                } else {
+                    alert('Ошибка при отмене');
+                }
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            renderAdminBookings();
+            
+            const authLink = document.getElementById('authLink');
+            if (authLink) {
+                authLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

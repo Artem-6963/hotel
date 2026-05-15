@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная | ROYALHOTEL</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('images/room4_1.jpg');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 1px solid #c9a55b33;
+        }
+        .hero h1 {
+            font-size: 4rem;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #c9a55b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Новый блок с текстом и фото */
+        .about-section {
+            padding: 80px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .about-text h2 {
+            font-size: 2rem;
+            color: #c9a55b;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .about-text p {
+            color: #888;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .about-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .about-images img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(201, 165, 91, 0.1);
+        }
+
+        .section-title {
+            text-align: center;
+            margin: 60px 0 40px;
+        }
+        .section-title h2 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 2px;
+            background: #c9a55b;
+            margin: 15px auto;
+        }
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 80px;
+        }
+        .card {
+            background: #12121a;
+            border: 1px solid rgba(201, 165, 91, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .card:hover {
+            border-color: #c9a55b;
+            transform: translateY(-5px);
+        }
+        .card-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .card-content {
+            padding: 20px;
+        }
+        .card-price {
+            color: #c9a55b;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+            <div class="logo">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">ROYALHOTEL</span>
+            </div>
+            <nav>
+                <a href="index.html" class="active">Главная</a>
+                <a href="catalog.html">Номера</a>
+                <a href="profile.html">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>ROYALHOTEL</h1>
+        <p>Исключительный сервис. Безупречный стиль.</p>
+    </section>
+
+    <main class="container">
+        <section class="about-section">
+            <div class="about-text">
+                <h2>Искусство отдыха</h2>
+                <p>Добро пожаловать в RoyalHotel — место, где современная роскошь встречается с классическим гостеприимством. Мы создали атмосферу спокойствия и эстетики в самом сердце города.</p>
+                <p>Наши интерьеры продуманы до мелочей, чтобы каждый гость чувствовал себя в центре внимания. От изысканной кухни до эксклюзивных спа-услуг — мы предлагаем лучшее.</p>
+            </div>
+            <div class="about-images">
+                <img src="images/room4_2.jpg" alt="Интерьер 1">
+                <img src="images/room4_3.jpg" alt="Интерьер 2">
+                <img src="images/room4_4.jpg" alt="Интерьер 3">
+                <img src="images/room4_5.jpg" alt="Интерьер 4">
+            </div>
+        </section>
+
+        <div class="section-title">
+            <h2>Наши эксклюзивные номера</h2>
+        </div>
+
+        <div id="popularRooms" class="featured-grid"></div>
+        
+        <div style="text-align: center; margin-bottom: 80px;">
+            <a href="catalog.html" class="btn" style="padding: 15px 40px; text-decoration: none;">Смотреть весь каталог</a>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('popularRooms');
+            const rooms = getRooms(); 
+
+            container.innerHTML = rooms.map(room => `
+                <div class="card">
+                    <img src="${room.images[0]}" class="card-img">
+                    <div class="card-content">
+                        <div class="card-price">${room.price_per_night.toLocaleString()} ₸ / Ночь</div>
+                        <h3 class="card-title">${room.name}</h3>
+                        <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px; height: 60px; overflow: hidden;">
+                            ${room.description}
+                        </p>
+                        <a href="room.html?id=${room.id}" class="btn" style="width: 100%; display: block; text-align: center; text-decoration: none;">Подробнее</a>
+                    </div>
+                </div>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
